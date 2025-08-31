@@ -10,3 +10,6 @@ build/
 # GitHub Actions artifacts
 *.log
 index.html.bak.*
+
+# local html backups
+index.html.bak*
