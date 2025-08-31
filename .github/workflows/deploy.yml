@@ -1,8 +1,6 @@
 name: Deploy static site to haunteddreams.fun
-
 on:
-  push:
-    branches: [main]
+  push: { branches: [ main ] }
   workflow_dispatch:
 
 jobs:
@@ -11,24 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare SSH key
+      - name: Start SSH agent with deploy key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Trust server host key
         run: |
-          echo "${{ secrets.SSH_KEY }}" > key
-          chmod 600 key
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Rsync to server
         run: |
           rsync -avz --delete \
             --exclude '.git' --exclude '.github' \
-            -e "ssh -i key -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
-
-      - name: Optimize images on server
-        run: |
-          ssh -i key -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "set -e;
-             command -v cwebp >/dev/null 2>&1 || (apt-get update && apt-get install -y webp || true);
-             cd '${{ secrets.DEPLOY_PATH }}'/assets || exit 0;
-             [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true;
-             [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true"
+            -e "ssh -o StrictHostKeyChecking=yes" \
+            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
