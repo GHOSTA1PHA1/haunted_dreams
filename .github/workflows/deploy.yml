@@ -1,30 +1,36 @@
-name: Deploy to server
+name: Deploy static site to haunteddreams.fun
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Start SSH agent with deploy key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
-
-      - name: Trust server host key
+      - name: Write SSH key
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          echo "${{ secrets.SSH_KEY }}" > key
+          chmod 600 key
 
-      - name: Rsync to server
+      - name: Sync files to server (rsync over SSH)
         run: |
           rsync -avz --delete \
-            --exclude ".git/" \
-            --exclude ".github/" \
-            --exclude ".DS_Store" \
-            --exclude "Thumbs.db" \
+            --exclude '.git' --exclude '.github' \
+            -e "ssh -i key -o StrictHostKeyChecking=accept-new" \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
+
+      - name: Post-deploy: ensure WebP + perms
+        run: |
+          ssh -i key -o StrictHostKeyChecking=accept-new ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          set -e
+          command -v cwebp >/dev/null 2>&1 || (apt-get update && apt-get install -y webp)
+          cd ${DEPLOY_PATH:-/var/www/haunteddreams.fun}/assets
+          [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
+          [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
+          chown -R www-data:www-data ${DEPLOY_PATH:-/var/www/haunteddreams.fun} || true
+          SSH
+    env:
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
