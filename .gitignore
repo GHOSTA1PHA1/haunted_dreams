@@ -1,0 +1,11 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node / tooling (if you ever add them)
+node_modules/
+dist/
+build/
+
+# GitHub Actions artifacts
+*.log
