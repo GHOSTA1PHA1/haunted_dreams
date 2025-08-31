@@ -9,3 +9,4 @@ build/
 
 # GitHub Actions artifacts
 *.log
+index.html.bak.*
