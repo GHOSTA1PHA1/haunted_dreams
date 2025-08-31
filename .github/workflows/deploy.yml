@@ -14,6 +14,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      - name: Install tools (webp, rsync)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y webp rsync
+
+      - name: Generate WebP (idempotent)
+        run: |
+          cd assets
+          [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
+          [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
+
       - name: Trust server host key
         run: |
           mkdir -p ~/.ssh
