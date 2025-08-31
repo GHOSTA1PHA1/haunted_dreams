@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://haunteddreams.fun/sitemap.xml

@@ -1,0 +1,42 @@
+:root{--border:rgba(96,165,250,.25)}
+*{box-sizing:border-box}
+body{margin:0;background:#0a0a0f;color:#e6f6ff;font:16px/1.6 system-ui,Segoe UI,Roboto,Arial}
+.wrap{max-width:1100px;margin:0 auto;padding:28px}
+.nav a{margin-right:12px;color:#e6f6ff;text-decoration:none;border-bottom:1px dotted rgba(96,165,250,.35)}
+.nav a:hover{opacity:.9}
+.card{border:1px solid var(--border);border-radius:16px;padding:18px;background:rgba(12,12,20,.6)}
+.btn{display:inline-block;padding:10px 16px;border:1px solid var(--border);border-radius:12px;text-decoration:none;color:#e6f6ff;margin-right:10px}
+.hero-compact{padding:8px 0 14px;margin:0 0 14px}
+.hero-compact img{display:block;width:100%;height:auto;border-radius:16px}
+
+/* --- hero as background (uses your banner.*) --- */
+.hero-banner{
+  position:relative;
+  display:flex; align-items:flex-end;
+  min-height: 320px;              /* not huge; adjust if you want */
+  padding: 28px 24px;
+  border:1px solid rgba(96,165,250,.25);
+  border-radius:16px;
+  overflow:hidden;
+
+  /* fallback (PNG) */
+  background:
+    linear-gradient(180deg, rgba(10,10,15,.10), rgba(10,10,15,.70) 60%, rgba(10,10,15,.88)),
+    url("/assets/banner.png") center / cover no-repeat;
+}
+@supports (background: image-set(url("/assets/banner.webp") type("image/webp") 1x)) {
+  .hero-banner{
+    /* prefer WebP when available */
+    background:
+      linear-gradient(180deg, rgba(10,10,15,.10), rgba(10,10,15,.70) 60%, rgba(10,10,15,.88)),
+      image-set(
+        url("/assets/banner.webp") type("image/webp") 1x,
+        url("/assets/banner.png")  type("image/png")  1x
+      ) center / cover no-repeat;
+  }
+}
+/* readable text on top of image */
+.hero-banner > *{ position:relative; z-index:1 }
+.hero-banner .title{ margin:0 0 .35rem; font-size:clamp(1.6rem,2.8vw,2.4rem) }
+.hero-banner .lead{ margin:.2rem 0 0; opacity:.9; max-width:70ch }
+.hero-banner img{ display:none !important; }

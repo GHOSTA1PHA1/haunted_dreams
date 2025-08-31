@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Haunted Dreams • .gast_</title>
+<style>/* fallback so page isn't white even if CSS 404s */
+body{margin:0;background:#0a0a0f;color:#e6f6ff;font:16px/1.6 system-ui,Segoe UI,Roboto,Arial}
+.wrap{max-width:1100px;margin:0 auto;padding:28px}.nav a{margin-right:12px;color:#e6f6ff;text-decoration:none}
+.card{border:1px solid rgba(96,165,250,.25);border-radius:16px;padding:18px;background:rgba(12,12,20,.6)}
+.btn{display:inline-block;padding:10px 16px;border:1px solid rgba(96,165,250,.25);border-radius:12px;text-decoration:none;color:#e6f6ff;margin-right:10px}
+.hero-compact img{display:block;width:100%;height:auto;border-radius:16px}
+</style>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero-compact">
+      <!-- This image is optional; if it 404s, the page still shows fine -->
+      <picture>
+        <source srcset="/assets/banner.webp" type="image/webp">
+        <img src="/assets/banner.png" alt="">
+      </picture>
+    </header>
+
+    <div class="card">
+      <nav class="nav">
+        <a href="/projects/">Projects</a>
+        <a href="/files/">Files</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+      <h1>Haunted Dreams</h1>
+      <p>Site online. Explore projects, grab files, or contact me.</p>
+      <p>
+        <a class="btn" href="/files/">📂 Open File Index</a>
+        <a class="btn" href="https://cfx.re/join/x84a5r" target="_blank" rel="noopener">▶ Join GBU on CFX</a>
+      </p>
+    </div>
+  </div>
+</body></html>

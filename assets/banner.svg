@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="420" viewBox="0 0 1600 420">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0f"/>
+      <stop offset="1" stop-color="#121225"/>
+    </linearGradient>
+    <radialGradient id="r" cx="80%" cy="0%" r="60%">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="r2" cx="10%" cy="110%" r="60%">
+      <stop offset="0" stop-color="#60a5fa" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <rect width="100%" height="100%" fill="url(#r)"/>
+  <rect width="100%" height="100%" fill="url(#r2)"/>
+  <g transform="translate(120,210) scale(1.2)">
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#7c3aed" stroke-opacity=".25"/>
+    <circle cx="0" cy="0" r="110" fill="none" stroke="#60a5fa" stroke-opacity=".18"/>
+    <image href="/assets/ghost.svg" x="-60" y="-60" width="120" height="120"/>
+  </g>
+  <text x="260" y="190" fill="#e6f6ff" font-size="54" font-family="ui-sans-serif,system-ui" font-weight="700">Haunted Dreams</text>
+  <text x="260" y="235" fill="#c7d2fe" font-size="22" font-family="ui-sans-serif,system-ui">Projects & servers by Ghost</text>
+</svg>
