@@ -13,20 +13,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Write private key from secret (strip CR just in case) and show fingerprint
       - name: Write SSH key
+        shell: bash
         run: |
           umask 077
-          printf '%s' "${{ secrets.SSH_KEY }}" > key
+          printf '%s' "${{ secrets.SSH_KEY }}" | tr -d '\r' > key
+          echo "Key fingerprint on runner:"
+          ssh-keygen -lf key
 
       - name: Trust server host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
+      # Try a tiny SSH first with very verbose logs. Keep going even if it fails.
+      - name: Debug SSH connectivity (-vvv)
+        continue-on-error: true
+        run: |
+          ssh -vvv -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key \
+            "$SSH_USER@$SSH_HOST" 'echo connected && whoami && id'
+
       - name: Ensure remote dir exists
         run: |
-          ssh -i key -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" \
-            "install -d -m 755 '$DEPLOY_PATH'"
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key \
+            "$SSH_USER@$SSH_HOST" "install -d -m 755 '$DEPLOY_PATH'"
 
       - name: (Optional) Generate WebP if PNGs present
         run: |
@@ -38,7 +49,7 @@ jobs:
 
       - name: Deploy via rsync
         env:
-          RSYNC_RSH: ssh -i key -o StrictHostKeyChecking=yes
+          RSYNC_RSH: ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key
         run: |
           rsync -avz --delete \
             --exclude '.git' --exclude '.github' \
