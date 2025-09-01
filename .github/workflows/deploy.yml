@@ -28,6 +28,14 @@ jobs:
           ssh -i key -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" \
             "install -d -m 755 '$DEPLOY_PATH'"
 
+      - name: (Optional) Generate WebP if PNGs present
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y webp
+          cd assets || exit 0
+          [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
+          [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
+
       - name: Deploy via rsync
         env:
           RSYNC_RSH: ssh -i key -o StrictHostKeyChecking=yes
