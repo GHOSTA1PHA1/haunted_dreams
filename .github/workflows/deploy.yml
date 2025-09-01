@@ -6,48 +6,32 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
     steps:
       - uses: actions/checkout@v4
 
-      # Write the private key from the secret as-is (no CRLF), validate it
       - name: Write SSH key
-        shell: bash
         run: |
           umask 077
-          printf '%s' "${{ secrets.SSH_KEY }}" | tr -d '\r' > key
-          ssh-keygen -y -f key >/dev/null
-
-      - name: Install tools (runner)
-        run: sudo apt-get update -y && sudo apt-get install -y rsync webp
+          printf '%s' "${{ secrets.SSH_KEY }}" > key
 
       - name: Trust server host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-
-      # Prove SSH works and show why if it doesn't
-      - name: Debug SSH connectivity
-        run: |
-          ssh -vvv -i key -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" echo CONNECTED
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Ensure remote dir exists
         run: |
-          ssh -i key -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "install -d -m 755 '${{ secrets.DEPLOY_PATH }}'"
-
-      - name: Generate WebP (idempotent)
-        run: |
-          if [ -d assets ]; then
-            cd assets
-            [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
-            [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
-          fi
+          ssh -i key -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" \
+            "install -d -m 755 '$DEPLOY_PATH'"
 
       - name: Deploy via rsync
+        env:
+          RSYNC_RSH: ssh -i key -o StrictHostKeyChecking=yes
         run: |
           rsync -avz --delete \
             --exclude '.git' --exclude '.github' \
-            -e "ssh -i key -o BatchMode=yes -o StrictHostKeyChecking=yes" \
-            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+            -e "$RSYNC_RSH" ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
