@@ -13,34 +13,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write SSH key
+      - name: Write SSH key (exact bytes, no CRLF) and validate
         shell: bash
         run: |
           umask 077
           printf '%s' "${{ secrets.SSH_KEY }}" | tr -d '\r' > key
-          echo "Runner key fingerprint:"
-          ssh-keygen -lf key
+          # derive pubkey from private key (this is how to validate a PRIVATE key)
+          ssh-keygen -y -f key > key.pub
+          echo "Key fingerprint:"
+          ssh-keygen -lf key.pub
 
       - name: Trust server host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
-      - name: Debug SSH (-vvv)
-        continue-on-error: true
+      - name: Debug SSH connectivity (-vv)
         run: |
-          ssh -vvv -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key \
-            "$SSH_USER@$SSH_HOST" 'echo connected && whoami && id'
+          ssh -vv -i key -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" \
+            'echo "AUTH OK on $(hostname) as $(id -un)"; id; uname -a'
 
       - name: Ensure remote dir exists
         run: |
-          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key \
-            "$SSH_USER@$SSH_HOST" "install -d -m 755 '$DEPLOY_PATH'"
+          ssh -i key -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" \
+            "install -d -m 755 '$DEPLOY_PATH'"
 
       - name: Deploy via rsync
-        env:
-          RSYNC_RSH: ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i key
         run: |
           rsync -avz --delete \
             --exclude '.git' --exclude '.github' \
-            -e "$RSYNC_RSH" ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+            -e "ssh -i key -o IdentitiesOnly=yes" \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
