@@ -10,12 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start SSH agent with deploy key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
+      # Write the private key from the secret into a file
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > key
+          chmod 600 key
 
-      - name: Install tools
+      - name: Install tools (runner)
         run: sudo apt-get update -y && sudo apt-get install -y rsync webp
 
       - name: Trust server host key
@@ -26,12 +27,26 @@ jobs:
       - name: Generate WebP (idempotent)
         run: |
           set -e
-          cd assets
-          [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
-          [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
+          if [ -d assets ]; then
+            cd assets
+            [ -f hero.png ]   && cwebp -q 82 -resize 1600 0 hero.png   -o hero.webp || true
+            [ -f banner.png ] && cwebp -q 82 -resize 1600 0 banner.png -o banner.webp || true
+          fi
+
+      - name: Ensure remote dir exists
+        run: |
+          ssh -i key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "install -d -m 755 '${{ secrets.DEPLOY_PATH }}'"
+
+      - name: Debug SSH connectivity
+        run: |
+          ssh -vv -i key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" echo CONNECTED
 
       - name: Deploy via rsync
         run: |
           rsync -avz --delete \
             --exclude '.git' --exclude '.github' \
+            -e "ssh -i key -o BatchMode=yes -o StrictHostKeyChecking=yes" \
             ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
